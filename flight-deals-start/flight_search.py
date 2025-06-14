@@ -1,24 +1,25 @@
 import os
 import requests
-from  dotenv import load_dotenv
-from datetime import datetime
+from dotenv import load_dotenv
+
 load_dotenv()
+
 TOKEN_ENDPOINT = "https://test.api.amadeus.com/v1/security/oauth2/token"
 IATA_ENDPOINT = "https://test.api.amadeus.com/v1/reference-data/locations/cities"
 FLIGHT_ENDPOINT = "https://test.api.amadeus.com/v2/shopping/flight-offers"
 
+
 class FlightSearch:
-    #This class is responsible for talking to the Flight Search API.
+    """This class is responsible for talking to the Amadeus Flight Search API."""
+    
     def __init__(self):
         self._api_key = os.environ["AMADEUS_API_KEY"]
         self._api_secret = os.environ["AMADEUS_API_SECRET"]
         self._token = self._get_new_token()
-    def get_destination_code(self, city_name):
 
-        # Return "TESTING" for now to make sure Sheety is working. Get TEQUILA API data later.
-        # code = "TESTING"
-        # return code
-        print(f"Using this token to get destination {self._token}")
+    def get_destination_code(self, city_name):
+        """Get the IATA code for a given city name."""
+        print(f"Using token to get destination code for {city_name}")
         headers = {"Authorization": f"Bearer {self._token}"}
         query = {
             "keyword": city_name,
@@ -43,8 +44,8 @@ class FlightSearch:
 
         return code
 
-
     def _get_new_token(self):
+        """Generate a new access token for the Amadeus API."""
         header = {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
@@ -54,30 +55,25 @@ class FlightSearch:
             'client_secret': self._api_secret,
         }
         response = requests.post(url=TOKEN_ENDPOINT, headers=header, data=body)
+        
         # New bearer token. Typically expires in 1799 seconds (30min)
-        print(f"Your token is {response.json()['access_token']}")
         print(f"Your token expires in {response.json()['expires_in']} seconds")
         return response.json()['access_token']
 
-    def check_flights(self, origin_city_code, destination_city_code, from_time, to_time,is_direct=True):
+    def check_flights(self, origin_city_code, destination_city_code, from_time, to_time, is_direct=True):
         """
-        Searches for flight options between two cities on specified departure and return dates
-        using the Amadeus API.
+        Search for flight options between two cities on specified departure and return dates.
+        
         Parameters:
             origin_city_code (str): The IATA code of the departure city.
             destination_city_code (str): The IATA code of the destination city.
             from_time (datetime): The departure date.
             to_time (datetime): The return date.
+            is_direct (bool): Whether to search for direct flights only.
+        
         Returns:
-            dict or None: A dictionary containing flight offer data if the query is successful; None
-            if there is an error.
-        The function constructs a query with the flight search parameters and sends a GET request to
-        the API. It handles the response, checking the status code and parsing the JSON data if the
-        request is successful. If the response status code is not 200, it logs an error message and
-        provides a link to the API documentation for status code details.
+            dict or None: Flight offer data if successful; None if there's an error.
         """
-
-        # print(f"Using this token to check_flights() {self._token}")
         headers = {"Authorization": f"Bearer {self._token}"}
         query = {
             "originLocationCode": origin_city_code,
@@ -100,10 +96,8 @@ class FlightSearch:
             print(f"check_flights() response code: {response.status_code}")
             print("There was a problem with the flight search.\n"
                   "For details on status codes, check the API documentation:\n"
-                  "https://developers.amadeus.com/self-service/category/flights/api-doc/flight-offers-search/api"
-                  "-reference")
+                  "https://developers.amadeus.com/self-service/category/flights/api-doc/flight-offers-search/api-reference")
             print("Response body:", response.text)
             return None
 
         return response.json()
-
