@@ -1,20 +1,21 @@
 import smtplib
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
+
 class NotificationManager:
-    #This class is responsible for sending notifications with the deal flight details.
-    # def __init__(self):
+    """This class is responsible for sending email notifications with flight deal details."""
+    
     def send_emails(self, email_list, email_body):
-        with smtplib.SMTP(os.environ["SMTP_ADDRESS"],port=587) as connection:
+        """Send email notifications to all users in the email list."""
+        with smtplib.SMTP(os.environ["SMTP_ADDRESS"], port=587) as connection:
             connection.starttls()
-            connection.login(os.environ["Email"], os.environ["Password"])
+            connection.login(os.environ["EMAIL"], os.environ["PASSWORD"])
             for email in email_list:
                 connection.sendmail(
-                    from_addr=os.environ["Email"],
-                    to_addrs=os.environ["Email"],
+                    from_addr=os.environ["EMAIL"],
+                    to_addrs=email,  # Fixed: was sending to self instead of recipient
                     msg=f"Subject:New Low Price Flight!\n\n{email_body}".encode('utf-8')
                 )
-
-
